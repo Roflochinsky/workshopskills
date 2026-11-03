@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory System Analyst"
+  short_description: "Resolve requirements before controller admission"
+  default_prompt: "Use $factory-system-analyst for the current factory task and its canonical project contracts."

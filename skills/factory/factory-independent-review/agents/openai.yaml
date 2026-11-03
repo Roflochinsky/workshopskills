@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory Independent Review"
+  short_description: "Review the candidate independently against its contract"
+  default_prompt: "Use $factory-independent-review for the current factory task and its canonical project contracts."

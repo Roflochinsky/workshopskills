@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory RBAC Audit"
+  short_description: "Verify access boundaries against accepted policy"
+  default_prompt: "Use $factory-rbac-audit for the current factory task and its canonical project contracts."

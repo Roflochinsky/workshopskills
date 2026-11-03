@@ -13,11 +13,9 @@ runtime. For these fixes a green author run is NOT "done".
 
 1. Track via `bd` (issue or child issue of the current epic).
 2. **Write** the fix.
-3. **Independent review pass**: a separate reviewer/verifier agent or clean reviewer
-   session reviews the diff specifically for runtime SQL hazards (bind params, casts,
-   transaction scope, migration reversibility). Select the model and delegation tools
-   in the harness adapter; if no independent reviewer is available, report BLOCKED
-   rather than substituting author self-review.
+3. **Independent review pass**: a separate `code-reviewer`/`verifier` sub-agent (Opus)
+   reviews the diff specifically for runtime SQL hazards (bind params, casts,
+   transaction scope, migration reversibility).
 4. Approved? proceed. Rejected? fix → review again. Loop until the reviewer is clean.
 5. The author never approves their own pass, and never in the same context as the write.
 

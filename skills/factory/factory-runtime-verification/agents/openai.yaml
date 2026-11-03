@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory Runtime Verification"
+  short_description: "Run project checks and preserve revision evidence"
+  default_prompt: "Use $factory-runtime-verification for the current factory task and its canonical project contracts."

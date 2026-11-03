@@ -1,4 +1,0 @@
-interface:
-  display_name: "Factory System Analyst"
-  short_description: "Turn ideas into traceable, verifiable requirements"
-  default_prompt: "Use $factory-system-analyst to prepare a verifiable spec using this project’s conventions and existing decisions."
