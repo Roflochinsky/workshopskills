@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory Preflight"
+  short_description: "Check contracts, reuse, workspace and execution"
+  default_prompt: "Use $factory-preflight for the current factory task and its canonical project contracts."

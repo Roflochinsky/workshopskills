@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "task_id": "billing-rounding",
+  "spec": "docs/specs/billing.md",
+  "adrs": [{"path": "docs/adr/001-billing-boundary.md", "status": "accepted", "decision_source": "Accepted synthetic example policy, docs/specs/billing.md; no new user decision"}],
+  "test_contract": "docs/test-contracts/billing.json",
+  "scope": ["billing.py", "tests/**"],
+  "requirements": ["REQ-1", "REQ-2"],
+  "invariants": ["INV-1"],
+  "acceptance": [
+    {"id": "AC-1", "requirements": ["REQ-1"]},
+    {"id": "AC-2", "requirements": ["REQ-2"]},
+    {"id": "AC-3", "requirements": ["INV-1"]}
+  ],
+  "analysis": {"status": "ANALYSIS_READY", "blocking_questions": []}
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory Test Design"
+  short_description: "Choose evidence for distinct behavior and risks"
+  default_prompt: "Use $factory-test-design for the current factory task and its canonical project contracts."

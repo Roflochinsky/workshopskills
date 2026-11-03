@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenarios": [
+    {"id": "S-1", "requirements": ["REQ-1", "INV-1"], "acceptance": ["AC-1", "AC-3"], "behavior": "Charge partial minutes while preserving zero/exact boundaries", "distinct_failure_mode": "Floor loses partial minutes; unconditional increment overcharges exact boundaries", "public_boundary": "billing.billed_minutes", "oracle_source": "Accepted table in docs/specs/billing.md", "existing_coverage": "tests/test_billing.py::BillingContract.test_started_minutes; fails on the seeded defect", "disposition": "reuse", "cost": "One pure function test with six distinguishing cases; no environment setup", "checks": ["billing"]},
+    {"id": "S-2", "requirements": ["REQ-2"], "acceptance": ["AC-2"], "behavior": "Reject invalid durations", "distinct_failure_mode": "A rounding repair accidentally broadens accepted input types or accepts negatives", "public_boundary": "billing.billed_minutes", "oracle_source": "REQ-2 in docs/specs/billing.md", "existing_coverage": "tests/test_billing.py::BillingContract.test_invalid_input", "disposition": "reuse", "cost": "One parameterized validation test, no duplicated lower-level tests", "checks": ["billing"]}
+  ],
+  "rbac": {"required": false, "reason": "Pure arithmetic example; no identities, resources or authorization boundary"}
+}

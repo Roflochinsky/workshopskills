@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "project_id": "law-factory-demo",
+  "instructions": [],
+  "workspace": {"provider": "git"},
+  "preview": {"environment_id": "synthetic-billing", "isolation": "serial", "synthetic": true},
+  "verification": {
+    "checks": [{"id": "billing", "argv": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"], "cwd": ".", "timeout_seconds": 10, "required": true, "env": []}]
+  },
+  "runtime": {"max_runs": 12, "timeout_seconds": 30, "output_limit_bytes": 262144, "sandbox": "bubblewrap"},
+  "harnesses": {}
+}
