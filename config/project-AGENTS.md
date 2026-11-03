@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Shared agent rules for Workwatch: behavioral guidelines + project rules + verification protocol. This is the **single source of truth** for agent-agnostic project rules — Claude Code imports this file from `CLAUDE.md` (which adds only its Claude-specific dispatcher/skills layer), Codex reads it natively. When project rules change, change them HERE, not in both files. If rules conflict, prefer the safer interpretation and surface the tradeoff before coding.
+Shared agent rules for Workwatch: behavioral guidelines + project rules + verification protocol. This is the **single source of truth** for agent-agnostic project rules — Claude Code imports this file from `CLAUDE.md` (which adds only its Claude-specific dispatcher/skills layer), Codex reads it natively; other harnesses must load the effective project instructions explicitly when discovery does not. When project rules change, change them HERE, not in both files. If rules conflict, prefer the safer interpretation and surface the tradeoff before coding.
 
 ---
 
@@ -15,10 +15,10 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
 
 Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
+- State assumptions explicitly. Investigate factual uncertainty; ask when a material decision cannot be resolved from the project or existing user answers.
 - If multiple interpretations exist, present them - don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+- If an unknown blocks correct implementation or verification, stop the affected implementation, name the gap, and resolve it. Record nonblocking unknowns with their impact; do not reopen settled decisions.
 
 ## 2. Simplicity First
 
@@ -77,10 +77,17 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Execution posture
 - The user is the product owner and source of truth for Workwatch decisions in this repository.
 - **When the user asks for something, implement it to completion — no extra approval cycles, no re-litigating decisions the user has already made.** The user's request is the authorization.
-- **The only approval gate is the ADR.** If a task requires creating a new ADR or changing an existing one (see _ADR gates_ below), stop, agree the decision with the user, then implement. Nothing else is gated.
+- **The only human approval gate is the ADR.** If a task requires creating a new ADR or changing an existing one (see _ADR gates_ below), agree the decision before implementation. If the user already explicitly approved that decision for the current scope, record the evidence rather than asking again. Requirements-readiness and verification checks are evidence checks, not additional approval cycles.
 - When the user confirms a product/metric/rollout/scope decision, treat it as approval to supersede older ADRs, plans, and docs that conflict. Record the supersession in the relevant ADR/plan/docs, then execute. Update or replace the conflicting older ADR rather than preserving legacy logic for compatibility.
 - Safety reflexes still apply automatically: never commit or expose secrets; never use production data, resources, or URLs unless the user explicitly says `prod` (and never reach for external/other production systems the user has not pointed you to — see _Environment and safety_); before a destructive database or deployment action, state the exact target and command. These are reflexes, not approval gates — the user's explicit instruction is enough to proceed.
 - Git: **auto-push is enabled.** Commit and push to `release` at the end of a work session, but only after the _Mandatory verification_ checks below are green. Normal pushes only — force-push or rebasing already-published commits still needs the user's explicit OK.
+
+## LAW: Requirements & Analysis
+
+- For Tier 2 / heavy work (an ADR trigger, a feature with its own business logic, or a multi-layer contract change), load `heavy-task-pipeline`. It owns the phase order and pre-execution check across harnesses.
+- The pipeline uses `factory-system-analyst` as the single source for spec completeness, consistency, traceability, and readiness. Use it directly for standalone spec preparation/review; standalone analysis does not start implementation. Product discussion stays with `grill-me`; the existing ADR gate and independent verification remain in force.
+- Reuse this file's _Read before non-trivial work_, _Product and architecture invariants_, _ADR gates_, _Business approval gates_, _Mandatory verification_, and _Environment and safety_ sections as the Workwatch analysis profile. Link those sources rather than duplicating them in the skill or every spec. Use existing spec/ADR/plan conventions; current defaults are `docs/specs/`, `docs/ADR/`, and `docs/plans/`.
+- Load skills through the active harness or read the installed skill's `SKILL.md` directly. Resolve the active source when names conflict; one project's rules must not be silently replaced by an unrelated global skill. Keep models, invocation syntax, and tool bindings in the harness adapter.
 
 ## Mandatory verification after writing code
 
@@ -117,14 +124,15 @@ npm run test        # orchestrates typecheck + lint + all contract gates
 - API contract touched on both sides → **both**, and regenerate OpenAPI/types if the contract changed.
 - Schema / sync / auth / export / formula change → also record **prod smoke** notes (see _Environment and safety_).
 
-## Workflow & skill routing (Codex / omx only — Claude Code uses the dispatcher in `CLAUDE.md` instead)
-- This section applies when the session runs under **oh my codex (omx)** — it is launched with its own overlays (e.g. `omx --madmax --high`) and does built-in prompt routing. Don't try to "invoke omx"; it is the runtime. Your job here is the next layer: route each task to the right flow/skill.
-- Per task, pick the flow/skill that matches the task type: discussion/research before unclear product or ADR decisions, planning for non-trivial implementation, quick execution for small scoped changes, debug for defects, UI review for visual/UX work, and code review before judging implementation quality.
-- If the selected flow/skill requires user approval or business clarification, stop implementation and wait for the answer before changing code.
-- **Default: every task runs through beads + the oh-my-codex flow** — open a `bd` issue, then plan → implement → independent review (write → review → ok? proceed : fix → review again). The ONLY exception is trivial cosmetic changes — e.g. editing KPI-card text/a label, adding a button to the frontend menu, a single-spot copy/style tweak — which may be done directly, no `bd` issue and no review pass. When unsure whether a task is trivial, treat it as non-trivial and use the full flow.
+## Workflow & skill routing (all harnesses)
+
+- Route each task to discussion/research for unclear product decisions, planning for non-trivial implementation, quick execution for small scoped changes, debugging for defects, UI review for visual/UX work, and independent review before judging implementation quality. Use the LAW route above for heavy work; Claude Code's dispatcher adds only its runtime bindings.
+- Resolve blocking business questions and apply the existing ADR gate where triggered. A selected skill or runtime flow must not introduce new approval cycles or reopen decisions already made for this scope.
+- **Default: every non-trivial task uses beads and plan → implement → independent review** (write → review → ok? proceed : fix → review again). Native flows, including omx when actually running under it, may carry out those steps; no particular orchestration plugin is required. OMP is a different harness, not an alias for omx.
+- The ONLY exception is trivial cosmetic changes — e.g. editing KPI-card text/a label, adding a button to the frontend menu, a single-spot copy/style tweak — which may be done directly, no `bd` issue and no review pass. When unsure whether a task is trivial, treat it as non-trivial and use the full flow. A contract or business-rule change is not cosmetic.
 
 ## Runtime-/live-only bug fixes — mandatory write→review loop (all agents)
-When the failure only manifests at runtime and the repo's tests can't catch it (raw SQL via SQLAlchemy `text()` / asyncpg, migrations, queries, any live-DB path — backend tests are mostly SQL-text/mocks, no live DB), a green author run is NOT "done": loop write → independent review (separate reviewer/verifier subagent) → fix → review until clean, and always add a unit guard that catches the failure class without a live DB. Full procedure and the known SQL footguns: `.claude/skills/runtime-sql-review/SKILL.md` (Claude invokes it as the `runtime-sql-review` skill; Codex reads the file).
+When the failure only manifests at runtime and the repo's tests can't catch it (raw SQL via SQLAlchemy `text()` / asyncpg, migrations, queries, any live-DB path — backend tests are mostly SQL-text/mocks, no live DB), a green author run is NOT "done": loop write → independent review (separate reviewer/verifier subagent) → fix → review until clean, and always add a unit guard that catches the failure class without a live DB. Full procedure and the known SQL footguns: the installed `runtime-sql-review` skill (load it through the harness or read its canonical `SKILL.md`; `.claude/skills/runtime-sql-review/SKILL.md` is the Claude installation path).
 
 ## Read before non-trivial work
 1. `docs/PRD_Workwatch_Dashboard_v2.3_Codex.md`

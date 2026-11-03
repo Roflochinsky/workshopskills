@@ -14,8 +14,8 @@ the task dispatcher, skills, and sub-agent rules. When shared rules change, edit
 # Task dispatcher (Claude Code)
 
 Classify every request top-down — **first match wins**. When genuinely unsure between
-tiers, treat it as the higher tier or ask one question. The omx routing section in
-`AGENTS.md` is Codex-only; this dispatcher is the Claude Code equivalent.
+tiers, treat it as the higher tier or ask one question. Shared workflow routing lives
+in `AGENTS.md`; this dispatcher provides the Claude Code bindings.
 
 **Signals to check before classifying:**
 - ADR-gate trigger touched (`AGENTS.md` → _ADR gates_)? Formulas / status semantics,
@@ -31,10 +31,9 @@ Triggers (any one): an ADR-gate trigger; a new dashboard section or feature with
 own business logic; ≥2 layers with a new or changed contract (e.g. new endpoints +
 migrations + UI); a bug whose fix changes a formula or contract.
 
-→ Invoke the **`heavy-task-pipeline`** skill: discuss (`grill-me`) → spec in
-`docs/specs/` (+ ADR sign-off if gated — the only approval gate) → bd epic → research
-(read-only sub-agents per layer) → plan (`writing-plans` → bd child issues) → execute
-(one executor sub-agent per issue, TDD) → verify (independent reviewer sub-agents).
+→ Invoke **`heavy-task-pipeline`**. Follow its phase order and the shared LAW route
+in `AGENTS.md`; it delegates requirements/readiness to `factory-system-analyst`
+and product questions to `grill-me`. Do not maintain a second pipeline here.
 
 ## Tier 1 — Standard (real behavior change, no gate; one layer or a thin slice)
 
@@ -67,6 +66,7 @@ SQLAlchemy `text()` / asyncpg, migrations, live-DB paths) → invoke the
 | Situation | Skill |
 |---|---|
 | Tier 2 / heavy task | `heavy-task-pipeline` (project) |
+| Spec analysis / completeness / traceability | `factory-system-analyst` (project) |
 | Deep design interview before code | `grill-me` (global) |
 | Brief requirement clarification | `superpowers:brainstorming` |
 | Implementation plan | `superpowers:writing-plans` |
